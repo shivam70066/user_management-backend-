@@ -1,0 +1,33 @@
+<div id="content">
+  <div id="body">
+    <h1>
+     Log In
+    </h1>
+    <div id="form-body">
+
+      <form [formGroup]="userform" (ngSubmit)="userform.valid && login()">
+
+        <mat-form-field class="example-full-width">
+          <mat-label>Email</mat-label>
+          <input type="email" matInput formControlName="email" placeholder="Ex. pat@example.com">
+          @if(userform.get('email')?.hasError('required')){
+          <mat-error>Email is <strong>required</strong></mat-error>
+          }@else if (userform.get('email')?.hasError('email')) {
+          <mat-error>Enter a valid email</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field class="example-full-width">
+          <mat-label>Password</mat-label>
+          <input type="password" matInput formControlName="password" placeholder="*********">
+          @if(userform.get('password')?.hasError('required')){
+          <mat-error>Password is <strong>required</strong></mat-error>
+          }
+        </mat-form-field>
+
+        <button type="submit">Log In</button>
+        <p>Don't have a account. <a routerLink="/signup" id="sign_up">Signup</a></p>
+      </form>
+    </div>
+  </div>
+
+</div>
