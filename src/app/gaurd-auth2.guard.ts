@@ -8,7 +8,7 @@ export const gaurdAuth2Guard: CanActivateFn = (route, state) => {
   const token = localStorage.getItem('token');
 
   if (token) {
-    _router.navigate(['list']);
+    _router.navigate(['users']);
     return false;
   }
 

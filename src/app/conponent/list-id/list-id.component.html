@@ -1,3 +1,4 @@
+<app-nav></app-nav>
 <div id="content">
   <div id="body">
     <h1>
@@ -24,18 +25,51 @@
             </div>
           </td>
           } @else{
-            <tr class="bg-white border-b dark:bg-purple-200 dark:border-purple-200" style="font-size: 24px;">
+            <tr class="bg-white border-b dark:bg-purple-100 dark:border-purple-200" style="font-size: 24px;">
               <td class="px-6 py-4">
                 Name:
               </td>
               <td class="px-6 py-4">
-                {{newData.email}}
+                {{userData.data.user_name}}
+              </td>
+            </tr>
+            <tr class="bg-white border-b dark:bg-purple-100 dark:border-purple-200" style="font-size: 24px;">
+              <td class="px-6 py-4">
+                Email:
+              </td>
+              <td class="px-6 py-4">
+                {{userData.data.user_email}}
+              </td>
+            </tr>
+            <tr class="bg-white border-b dark:bg-purple-100 dark:border-purple-200" style="font-size: 24px;">
+              <td class="px-6 py-4">
+                Phone No.:
+              </td>
+              <td class="px-6 py-4">
+                {{userData.data.user_number}}
+              </td>
+            </tr>
+            <tr class="bg-white border-b dark:bg-purple-100 dark:border-purple-200" style="font-size: 24px;">
+              <td class="px-6 py-4">
+                Gender:
+              </td>
+              <td class="px-6 py-4">
+                {{userData.data.user_gender}}
+              </td>
+            </tr>
+            <tr class="bg-white border-b dark:bg-purple-100 dark:border-purple-200" style="font-size: 24px;">
+              <td class="px-6 py-4">
+                User Created At:
+              </td>
+              <td class="px-6 py-4">
+                {{convertTimestampToDateTime(userData.data.user_created_at)}}
               </td>
             </tr>
 
           }
         </tbody>
       </table>
+      <a routerLink="/users" color="primary">Back</a>
     </div>
   </div>
 

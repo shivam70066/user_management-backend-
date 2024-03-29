@@ -18,13 +18,17 @@
         </mat-form-field>
         <mat-form-field class="example-full-width">
           <mat-label>Password</mat-label>
-          <input type="password" matInput formControlName="password" placeholder="*********">
+          <input type="password" matInput [type]="hide ? 'text' : 'password'" formControlName="password" placeholder="*********">
+          <button type="button" mat-icon-button matSuffix (click)="hide = !hide" [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide">
+            <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+
           @if(userform.get('password')?.hasError('required')){
           <mat-error>Password is <strong>required</strong></mat-error>
           }
         </mat-form-field>
 
-        <button type="submit">Log In</button>
+        <button type="submit" id="btn">Log In</button>
         <p>Don't have a account. <a routerLink="/signup" id="sign_up">Signup</a></p>
       </form>
     </div>

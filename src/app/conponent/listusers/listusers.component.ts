@@ -1,85 +1,94 @@
-import { GetdataService } from './../../services/getdata.service';
-
-import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { LiveAnnouncer } from '@angular/cdk/a11y';
+import {HttpClient} from '@angular/common/http';
+import {Component, ViewChild, AfterViewInit} from '@angular/core';
+import {MatPaginator, MatPaginatorModule} from '@angular/material/paginator';
+import {MatSort, MatSortModule, SortDirection} from '@angular/material/sort';
+import {merge, Observable, of as observableOf} from 'rxjs';
+import {catchError, map, startWith, switchMap} from 'rxjs/operators';
+import {MatTableModule} from '@angular/material/table';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import {DatePipe} from '@angular/common';
 
 
 @Component({
   selector: 'app-listusers',
   standalone: true,
-  imports: [HttpClientModule, MatFormFieldModule, MatInputModule, MatTableModule, MatSortModule, MatPaginatorModule],
+  imports: [MatProgressSpinnerModule, MatTableModule, MatSortModule, MatPaginatorModule, DatePipe],
   templateUrl: './listusers.component.html',
-  providers: [GetdataService],
   styleUrl: './listusers.component.scss'
 })
 export class ListusersComponent implements AfterViewInit {
-  isloading = true;
-  httpClient = inject(HttpClient);
-  Fulldata: any[] = [];
-  showData: any[] = [];
+  displayedColumns: string[] = ['created', 'state', 'number', 'title'];
+  exampleDatabase: ExampleHttpDatabase | null | undefined;
+  data: GithubIssue[] = [];
 
-  constructor(private _liveAnnouncer: LiveAnnouncer) {}
+  resultsLength = 0;
+  isLoadingResults = true;
+  isRateLimitReached = false;
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
+  constructor(private _httpClient: HttpClient) {}
+
   ngAfterViewInit() {
-    this.datasource.sort = this.sort;
+    this.exampleDatabase = new ExampleHttpDatabase(this._httpClient);
+
+    // If the user changes the sort order, reset back to the first page.
+    this.sort.sortChange.subscribe(() => (this.paginator.pageIndex = 0));
+
+    merge(this.sort.sortChange, this.paginator.page)
+      .pipe(
+        startWith({}),
+        switchMap(() => {
+          this.isLoadingResults = true;
+          return this.exampleDatabase!.getRepoIssues(
+            this.sort.active,
+            this.sort.direction,
+            this.paginator.pageIndex,
+          ).pipe(catchError(() => observableOf(null)));
+        }),
+        map(data => {
+          // Flip flag to show that loading has finished.
+          this.isLoadingResults = false;
+          this.isRateLimitReached = data === null;
+
+          if (data === null) {
+            return [];
+          }
+
+          // Only refresh the result length if there is new data. In case of rate
+          // limit errors, we do not want to reset the paginator to zero, as that
+          // would prevent users from re-triggering requests.
+          this.resultsLength = data.total_count;
+          return data.items;
+        }),
+      )
+      .subscribe(data => (this.data = data));
   }
-
-
-  dataa: any = [];
-
-
-  fetchData() {
-    this.httpClient.get('https://jsonplaceholder.org/users').subscribe((data: any) => {
-      this.Fulldata = data;
-      this.isloading = false;
-      this.showData = this.Fulldata.slice(0, 10)
-      console.log(this.Fulldata)
-      this.datasource = new MatTableDataSource<any>(this.Fulldata);
-      console.log(this.datasource);
-    });
-  }
-
-
-  datasource: MatTableDataSource<any> = new MatTableDataSource<any>;
-  displayedColumns: string[] = ['id', 'name', 'email', 'number', 'age', 'address'];
-
-  // @ViewChild(MatPaginator) paginator!: MatPaginator;
-
-  // ngAfterViewInit() {
-  //   this.datasource.paginator = this.paginator;
-  // }
-
-  ngOnInit(): void {
-    this.fetchData();
-  }
-
-  /** Announce the change in sort state for assistive technology. */
-  announceSortChange(sortState: Sort) {
-    // This example uses English messages. If your application supports
-    // multiple language, you would internationalize these strings.
-    // Furthermore, you can customize the message to add additional
-    // details about the values being sorted.
-    if (sortState.direction) {
-      this._liveAnnouncer.announce(`Sorted ${sortState.direction}ending`);
-    } else {
-      this._liveAnnouncer.announce('Sorting cleared');
-    }
-  }
-
-calculateAge(birthdateString: any) {
-
-  const today = new Date();
-  const birthDate = new Date(birthdateString);
-  const age = today.getFullYear() - birthDate.getFullYear();
-  const month = today.getMonth() - birthDate.getMonth();
-  return age;
 }
 
+export interface GithubApi {
+  items: GithubIssue[];
+  total_count: number;
+}
+
+export interface GithubIssue {
+  created_at: string;
+  number: string;
+  state: string;
+  title: string;
+}
+
+/** An example database that the data source uses to retrieve data for the table. */
+export class ExampleHttpDatabase {
+  constructor(private _httpClient: HttpClient) {}
+
+  getRepoIssues(sort: string, order: SortDirection, page: number): Observable<GithubApi> {
+    const href = 'https://api.github.com/search/issues';
+    const requestUrl = `${href}?q=repo:angular/components&sort=${sort}&order=${order}&page=${
+      page + 1
+    }`;
+
+    return this._httpClient.get<GithubApi>(requestUrl);
+  }
 }

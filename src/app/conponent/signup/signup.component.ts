@@ -53,7 +53,7 @@ export class SignupComponent {
 
   save() {
     //<any to response>
-    this.http.post<response>('http://localhost:8000/signup', this.userform.value).subscribe(
+    this.http.post<response>('http://localhost:8000/auth/signup', this.userform.value).subscribe(
       response => {
         const message = response.msg;
         const status = response.status;
@@ -62,11 +62,8 @@ export class SignupComponent {
         }
         if (response.status == 403) {
           this.showEmailAlreadyRegisterd();
-          console.log(this.userform.value.email)
           this.valid = true;
-          console.log(this.valid)
         }
-        console.log("hy " + status)
       },
       error => {
         console.error('Error sending data:', error.error.msg);

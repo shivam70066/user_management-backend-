@@ -1,35 +1,47 @@
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Component, OnInit, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NavComponent } from "../../nav/nav.component";
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-list-id',
   standalone: true,
-  imports: [HttpClientModule],
   templateUrl: './list-id.component.html',
-  styleUrl: './list-id.component.scss'
+  styleUrl: './list-id.component.scss',
+  imports: [HttpClientModule, NavComponent, RouterLink, RouterLinkActive]
 })
 export class ListIdComponent implements OnInit {
   isloading = true;
-  id?:any;
+  id?: any;
   httpClient = inject(HttpClient);
-  newData?:any;
-  showData:any;
-  constructor(private activatedRoute: ActivatedRoute) { }
+  userData?: any;
+  showData: any;
+  constructor(private activatedRoute: ActivatedRoute,private toastr: ToastrService, private router: Router) { }
+
   ngOnInit(): void {
     const id = this.activatedRoute.snapshot.paramMap.get('id');
-    this.id=id;
+    this.id = id;
     this.fetchData()
   }
 
   fetchData() {
-    this.httpClient.get("https://jsonplaceholder.org/users/"+this.id).subscribe((data: any) => {
-      this.newData = data;
+    this.httpClient.get("http://localhost:8000/user/" + this.id).subscribe((data: any) => {
+      this.userData = data;
+      if(data.status == 401){
+        this.toastr.error('Session Expired');
+        localStorage.clear()
+        this.router.navigate(['../login']);
+      }
       this.isloading = false;
-      // this.showData = this.newData.slice(0,10)
-      console.log(data)
-      console.log(this.newData)
     });
+  }
+
+  convertTimestampToDateTime(timestamp: string | number | Date) {
+    if(timestamp==null){
+      return "N/A"
+    }
+    const dateTimeUTC = new Date(timestamp);
+    return dateTimeUTC.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
   }
 }

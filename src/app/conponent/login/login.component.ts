@@ -12,6 +12,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
 import { Router, RouterLink } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 
 
 interface response {
@@ -24,11 +25,14 @@ interface response {
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, MatRadioModule, HttpClientModule,RouterLink],
+  imports: [FormsModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule,
+    MatRadioModule, HttpClientModule,RouterLink,MatIconModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
 export class LoginComponent {
+
+  hide: boolean = false;
 
   constructor(private builder: FormBuilder, private http: HttpClient,
     private toastr: ToastrService,private router: Router,) {
@@ -38,9 +42,10 @@ export class LoginComponent {
     email: this.builder.control('', [Validators.required, Validators.email]),
     password: this.builder.control('', Validators.required)
   });
+
   login() {
     //<any to response>
-    this.http.post<response>('http://localhost:8000/login', this.userform.value).subscribe(
+    this.http.post<response>('http://localhost:8000/auth/login', this.userform.value).subscribe(
       response => {
         const message = response.msg;
         const status = response.status;
@@ -51,7 +56,7 @@ export class LoginComponent {
         }
         if(status==200){
           localStorage.setItem('token', response.token);
-          this.router.navigate(['../list']);
+          this.router.navigate(['../users']);
           sessionStorage.setItem("isLogin","true");
         }
       },

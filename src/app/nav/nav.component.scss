@@ -13,7 +13,7 @@
   width:60%;
 }
 #left a{
-  color: white;
+  color: rgb(216, 216, 216);
   // font-size: 18px;
 }
 #right a{
@@ -21,6 +21,7 @@
   // font-size: 18px;
 }
 .active{
+  background-color: #ffffff;
   font-weight:900;
   font-size: 18px;
 }
