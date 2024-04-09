@@ -8,7 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
-import Swal from 'sweetalert2';
+import {MatSelectModule} from '@angular/material/select';
 import { ToastrService } from 'ngx-toastr';
 
 interface response {
@@ -25,7 +25,7 @@ interface response {
   imports: [NavComponent, HttpClientModule, NavComponent, RouterLink, RouterLinkActive,
     FormsModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule,
     MatButtonModule, MatRadioModule,
-    HttpClientModule, MatIconModule, RouterLink]
+    HttpClientModule, MatIconModule, RouterLink,MatSelectModule]
 })
 export class UpdateUserComponent implements OnInit {
   isloading = true;
@@ -42,16 +42,23 @@ export class UpdateUserComponent implements OnInit {
   }
 
   fetchData() {
-    this.httpClient.get("http://localhost:8000/user/" + this.id).subscribe((data: any) => {
-      this.userData = data;
+
+    this.httpClient.get("http://localhost:8000/user/" + this.id).subscribe({next:(resp:any)=>{
+      this.userData = resp;
+      console.log(this.userData.data.user_role_id)
       this.isloading = false;
       this.userform = this.builder.group({
         name: this.builder.control(this.userData.data.user_name, [Validators.required, Validators.pattern('[a-zA-Z ]{3,}')]),
         email: this.builder.control(this.userData.data.user_email, [Validators.required, Validators.email],),
         number: this.builder.control(this.userData.data.user_number, [Validators.required, Validators.pattern('.{10,10}')]),
-        gender: new FormControl(this.userData.data.user_gender, [Validators.required])
+        gender: new FormControl(this.userData.data.user_gender, [Validators.required]),
+        roleID: this.builder.control(this.userData.data.user_role_id, [Validators.required]),
+
       });
-    });
+    },
+      error:(error)=>{
+        console.log("helloerro")
+      }})
   }
 
   convertTimestampToDateTime(timestamp: string | number | Date) {
@@ -73,6 +80,11 @@ export class UpdateUserComponent implements OnInit {
 
 
   save() {
+    if(this.userform.value.name?.trim()==""){
+      this.toastr.error("Name Can't be empty");
+      return;
+    }
+    console.log(this.userform.value)
     this.http.put<response>('http://localhost:8000/user/'+this.id, this.userform.value).subscribe(
       response => {
         const message = response.msg;
@@ -94,7 +106,7 @@ export class UpdateUserComponent implements OnInit {
 
       },
       error => {
-        console.error('Error sending data:', error.error.msg);
+        console.error('Error sending data:', error);
         alert(error.error.msg);
       }
     );

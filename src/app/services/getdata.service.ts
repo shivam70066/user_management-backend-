@@ -7,6 +7,8 @@ import { Observable } from 'rxjs';
 })
 export class GetdataService {
 
+
+
   constructor(private httpClient: HttpClient) { }
 
   getusers(pageIndex:number,
@@ -23,4 +25,6 @@ export class GetdataService {
 
     return this.httpClient.delete<any>("http://localhost:8000/user/"+userId);
   }
+
+
 }

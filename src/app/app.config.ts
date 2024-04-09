@@ -7,19 +7,20 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { provideToastr } from 'ngx-toastr';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { addTokenInterceptor } from './interceptors/add-token.interceptor';
+import { provideState, provideStore } from '@ngrx/store';
+import { roleReducer } from './states/roleState/role.reducer';
 
 export const appConfig: ApplicationConfig = {
   providers: [provideRouter(routes), provideAnimationsAsync(), provideAnimationsAsync(),
-  provideAnimationsAsync(),
-  provideAnimations(),
-  provideToastr({
-    positionClass: 'toast-bottom-center',
-  }),
-  provideHttpClient(withInterceptorsFromDi()),
-  {
-    provide: HTTP_INTERCEPTORS,
-    useClass: addTokenInterceptor,
-    multi: true
-  }
-  ]
+    provideAnimationsAsync(),
+    provideHttpClient(withInterceptorsFromDi()),{
+        provide: HTTP_INTERCEPTORS,
+        useClass: addTokenInterceptor,
+        multi: true},
+    provideAnimations(),
+    provideToastr({
+        positionClass: 'toast-bottom-center',
+    }),
+    provideStore(),
+  provideState({name:'role_slug', reducer: roleReducer})]
 };

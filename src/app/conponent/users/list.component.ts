@@ -1,10 +1,9 @@
-
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { MatTableModule } from '@angular/material/table';
-import { Component, OnInit, inject} from '@angular/core';
+import { Component, OnChanges, OnInit, SimpleChanges, inject} from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { PageEvent, MatPaginatorModule } from '@angular/material/paginator';
-import { JsonPipe } from '@angular/common';
+import { AsyncPipe, JsonPipe } from '@angular/common';
 import Swal from 'sweetalert2'
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { FormsModule } from '@angular/forms';
@@ -14,6 +13,12 @@ import { NavComponent } from "../../nav/nav.component";
 import { GetdataService } from '../../services/getdata.service';
 import { ToastrService } from 'ngx-toastr';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { Observable } from 'rxjs';
+import { AppState } from '../../states/app.state';
+import { Store } from '@ngrx/store';
+import { selectRole } from '../../states/roleState/role.selector';
+import { setRole } from '../../states/roleState/role.actions';
 
 
 
@@ -29,9 +34,14 @@ import { MatIconModule } from '@angular/material/icon';
     MatSlideToggleModule,
     MatPaginatorModule,
     JsonPipe, NavComponent,
-    MatIconModule]
+    MatIconModule,
+    MatButtonModule,
+  AsyncPipe]
 })
 export class ListComponent implements OnInit {
+
+
+  roleName$? : Observable<string>;
   isloading = true;
   httpClient = inject(HttpClient);
   dataService = inject(GetdataService)
@@ -50,6 +60,13 @@ export class ListComponent implements OnInit {
   sortOrder: string = "asc";
   value = '';
   debounceTimeout: any;
+
+
+  setRole(){
+    this.store.dispatch(setRole({ role_slug: 'changed' }));
+  }
+
+
 
   search() {
     clearTimeout(this.debounceTimeout);
@@ -70,7 +87,9 @@ export class ListComponent implements OnInit {
 
 
   newData: any;
+
   ngOnInit(): void {
+
   }
 
   getData(pageIndex: number,
@@ -98,6 +117,7 @@ export class ListComponent implements OnInit {
         }
       );
   }
+
   length?: number;
   pageSize: number = 5;
   pageSizeOptions = [2, 5, 10];
@@ -114,7 +134,6 @@ export class ListComponent implements OnInit {
     this.length = e.length;
 
     this.pageSize = e.pageSize;
-    sessionStorage.setItem("pageSize", e.pageSize.toString())
     this.pageIndex = e.pageIndex;
     this.isloading = true;
     this.getData(this.pageIndex, this.pageSize, this.searchTerm, this.sortBy, this.sortOrder)
@@ -127,9 +146,12 @@ export class ListComponent implements OnInit {
     }
   }
 
-  constructor(private toastr: ToastrService, private router: Router) {
+  constructor(private toastr: ToastrService, private router: Router,private store:Store<AppState>) {
     this.getData(0, 5, this.searchTerm, "user_created_at", "asc")
+    this.roleName$ = this.store.select(selectRole)
   }
+
+
 
   delete(userId: number) {
     Swal.fire({

@@ -31,7 +31,18 @@
             }
           </mat-form-field>
 
-
+          <mat-form-field class="example-full-width">
+            <mat-label>Choose Role</mat-label>
+            <mat-select formControlName="roleID" name="roleID">
+                <mat-option [value]="14">Admin</mat-option>
+                <mat-option [value]="15">Manager</mat-option>
+                <mat-option [value]="16">Team Lead</mat-option>
+                <mat-option [value]="17">Employee</mat-option>
+            </mat-select>
+            @if (userform.get('roleID')?.hasError('required')) {
+              <mat-error>Role is <strong>required</strong></mat-error>
+            }
+          </mat-form-field>
 
 
           <mat-form-field class="example-full-width">

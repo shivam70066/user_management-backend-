@@ -13,6 +13,9 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
 import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { setRole } from '../../states/roleState/role.actions';
+import { AppState } from '../../states/app.state';
+import { Store } from '@ngrx/store';
 
 
 interface response {
@@ -35,7 +38,8 @@ export class LoginComponent {
   hide: boolean = false;
 
   constructor(private builder: FormBuilder, private http: HttpClient,
-    private toastr: ToastrService,private router: Router,) {
+    private toastr: ToastrService,private router: Router,
+    private store: Store<AppState>) {
   }
 
   userform = this.builder.group({
@@ -56,6 +60,11 @@ export class LoginComponent {
         }
         if(status==200){
           localStorage.setItem('token', response.token);
+          this.http.get("http://localhost:8000/auth/decodeToken").subscribe((resp: any) => {
+          this.store.dispatch(setRole({ role_slug: resp.data.role_slug }));
+      }, (error) => {
+        console.error('Error:', error);
+      });
           this.router.navigate(['../users']);
           sessionStorage.setItem("isLogin","true");
         }
@@ -63,7 +72,7 @@ export class LoginComponent {
       error => {
         console.error('Error sending data:', error.error.msg);
         sessionStorage.setItem("isLogin","false");
-        alert(error.error.msg);
+        alert("Server Is not started. " + error.error.msg);
       }
     );
   }
